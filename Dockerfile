@@ -1,34 +1,26 @@
 # Pgpool2.
 
-FROM alpine:edge
+FROM alpine:latest
 
-ENV PGPOOL_VERSION 3.6.1
-
-ENV PG_VERSION 9.6.2-r1
+ENV PGPOOL_VERSION 4.3.1
+#ENV PGPOOL_VERSION 4_3_1
+ENV PG_VERSION 14
 
 ENV LANG en_US.utf8
     
-RUN apk --update --no-cache add libpq=${PG_VERSION} postgresql-dev=${PG_VERSION} postgresql-client=${PG_VERSION} \
-                                linux-headers gcc make libgcc g++ \
-                                libffi-dev python python-dev py2-pip libffi-dev curl && \
-    cd /tmp && \ 
-    wget http://www.pgpool.net/mediawiki/images/pgpool-II-${PGPOOL_VERSION}.tar.gz -O - | tar -xz && \
-    chown root:root -R /tmp/pgpool-II-${PGPOOL_VERSION} && \
-    cd /tmp/pgpool-II-${PGPOOL_VERSION} && \
-    ./configure --prefix=/usr \
-                --sysconfdir=/etc \
-                --mandir=/usr/share/man \
-                --infodir=/usr/share/info && \
-    make && \
-    make install && \
-    rm -rf /tmp/pgpool-II-${PGPOOL_VERSION} && \
-    curl -o /usr/local/bin/gosu -sSL "https://github.com/tianon/gosu/releases/download/1.2/gosu-amd64" && \
+RUN apk --update --no-cache add \
+    libpq \
+    postgresql${PG_VERSION}-dev \
+    postgresql${PG_VERSION}-client \
+    libffi-dev python3 python3-dev py3-pip libffi-dev curl pgpool
+#RUN    rm -rf /tmp/pgpool-II-${PGPOOL_VERSION} && \
+RUN    curl -o /usr/local/bin/gosu -sSL "https://github.com/tianon/gosu/releases/download/1.14/gosu-amd64" && \
     chmod +x /usr/local/bin/gosu && \
-    apk del postgresql-dev linux-headers gcc make libgcc g++ curl
+    apk del postgresql${PG_VERSION}-dev curl
 
 RUN pip install Jinja2
 
-RUN mkdir /etc/pgpool2 /var/run/pgpool /var/log/pgpool /var/run/postgresql /var/log/postgresql/ && \
+RUN mkdir -p /etc/pgpool2 /var/run/pgpool /var/log/pgpool /var/run/postgresql /var/log/postgresql/ && \
     chown postgres /etc/pgpool2 /var/run/pgpool /var/log/pgpool /var/run/postgresql /var/log/postgresql
 
 # Post Install Configuration.

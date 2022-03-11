@@ -68,6 +68,17 @@ pcp_socket_dir = '/var/run/postgresql'
 #backend_weight1 = 1
 #backend_data_directory1 = '/data1'
 #backend_flag1 = 'ALLOW_TO_FAILOVER'
+#
+{% for backend in pgpool_master %}
+{% set tokens = backend.split(':') %}
+backend_hostname{{ tokens[0] }} = '{{ tokens[1] }}'
+backend_port{{ tokens[0] }} = {{ tokens[2] }}
+backend_weight{{ tokens[0] }} = 1
+backend_flag{{ tokens[0] }} = 'ALWAYS_PRIMARY'
+{% endfor %}
+
+#
+
 {% for backend in pgpool_backends %}
 {% set tokens = backend.split(':') %}
 backend_hostname{{ tokens[0] }} = '{{ tokens[1] }}'
@@ -399,7 +410,7 @@ failback_command = ''
                                    #   %R = new master database cluster path
                                    #   %% = '%' character
 
-fail_over_on_backend_error = on
+failover_on_backend_error = on
                                    # Initiates failover when reading/writing to the
                                    # backend communication socket fails
                                    # If set to off, pgpool will report an
@@ -461,7 +472,7 @@ ping_path = '/bin'
 wd_hostname = ''
                                     # Host name or IP address of this watchdog
                                     # (change requires restart)
-wd_port = 9000
+wd_port0 = 9000
                                     # port number for watchdog service
                                     # (change requires restart)
 wd_authkey = ''
